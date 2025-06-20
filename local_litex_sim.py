@@ -19,6 +19,8 @@ from litex.tools.litex_sim  import sim_args
 from litex.tools.litex_sim  import SimSoC
 from litex.tools.litex_sim import generate_gtkw_savefile
 
+from inference_accelerator import InferenceAccelerator
+
 class LocalSimSoc(SimSoC):
     def __init__(self,
         with_sdram             = False,
@@ -73,6 +75,8 @@ class LocalSimSoc(SimSoC):
             with_jtag,
             **kwargs
         )
+
+        self.inference_accel = InferenceAccelerator()
 
 
 def main():
