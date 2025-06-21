@@ -86,7 +86,6 @@ int benchmark(void) {
 #ifdef CSR_INFERENCE_ACCEL_BASE
     volatile int p3 = 0; // Hardware accelerator results
     printf("Initializing inference accelerator...\n");
-    inference_accel_init();
     inference_accel_set_params(938.237861251353, 152.91886182616113);
     printf("Hardware accelerator initialized!\n\n");
 #else
