@@ -3,6 +3,7 @@
 #include <generated/csr.h>
 #include <irq.h>
 #include <uart.h>
+#include "inference_accel.h"
 
 uint32_t start_ticks;
 uint32_t elapsed_ticks;
@@ -34,10 +35,9 @@ void stop_stopwatch(void) {
     elapsed_ticks = start_ticks - end_ticks;
 }
 
-// Print elapsed time without using floats (similar to your reference function)
+// Print elapsed time without using floats
 void print_elapsed_time(uint32_t ticks, const char* benchmark_name) {
     // Convert ticks to microseconds first, then to milliseconds
-    // Avoid float operations for better compatibility
     uint32_t microseconds = ticks / (CONFIG_CLOCK_FREQUENCY / 1000000);
     uint32_t milliseconds = microseconds / 1000;
     uint32_t seconds = milliseconds / 1000;
@@ -54,7 +54,8 @@ void print_elapsed_time(uint32_t ticks, const char* benchmark_name) {
     printf("Clock frequency: %lu Hz\n", (unsigned long)CONFIG_CLOCK_FREQUENCY);
     printf("\n");
 }
-    
+
+// Software prediction functions
 double predict(double x) {
     return x * 938.237861251353 + 152.91886182616113;
 }
@@ -64,15 +65,26 @@ int predict_int(double x) {
 }
 
 int main() {
-    printf("LiteX Benchmark Starting...\n");
+    printf("LiteX Benchmark with Hardware Accelerator Starting...\n");
     
     double input = 0.03; // valor da feature
     volatile double p1 = 0;
     volatile int p2 = 0;
+    volatile int p3 = 0; // Hardware accelerator results
     int i;
     
-    // First benchmark - floating point prediction
-    printf("Running floating point benchmark...\n");
+    // Initialize hardware accelerator
+#ifdef CSR_INFERENCE_ACCEL_BASE
+    printf("Initializing inference accelerator...\n");
+    inference_accel_init();
+    inference_accel_set_params(938.237861251353, 152.91886182616113);
+    printf("Hardware accelerator initialized!\n\n");
+#else
+    printf("Warning: Inference accelerator not available in this build\n\n");
+#endif
+    
+    // First benchmark - floating point prediction (CPU)
+    printf("Running CPU floating point benchmark...\n");
     start_stopwatch();
     
     for (i = 0; i < 100000; i += 1) {
@@ -80,10 +92,10 @@ int main() {
     }
     
     stop_stopwatch();
-    print_elapsed_time(elapsed_ticks, "Floating Point Benchmark");
+    print_elapsed_time(elapsed_ticks, "CPU Floating Point Benchmark");
     
-    // Second benchmark - integer prediction
-    printf("Running integer benchmark...\n");
+    // Second benchmark - integer prediction (CPU)
+    printf("Running CPU integer benchmark...\n");
     start_stopwatch();
     
     for (i = 0; i < 100000; i += 1) {
@@ -91,17 +103,58 @@ int main() {
     }
     
     stop_stopwatch();
-    print_elapsed_time(elapsed_ticks, "Integer Benchmark");
-
+    print_elapsed_time(elapsed_ticks, "CPU Integer Benchmark");
+    
+    // Third benchmark - hardware accelerated prediction
+#ifdef CSR_INFERENCE_ACCEL_BASE
+    printf("Running hardware accelerated benchmark...\n");
+    start_stopwatch();
+    
+    for (i = 0; i < 100000; i += 1) {
+        int32_t hw_result = inference_accel_compute(input);
+        p3 += (hw_result >> 16); // Convert from Q16.16 to integer for accumulation
+    }
+    
+    stop_stopwatch();
+    print_elapsed_time(elapsed_ticks, "Hardware Accelerated Benchmark");
+#endif
+    
     printf("=== Final Results ===\n");
-    printf("Predição FP: %.6f\n", p1);
-    printf("Predição INT: %d\n", p2 / 100);
+    printf("CPU FP accumulated result: %.6f\n", p1);
+    printf("CPU INT accumulated result: %d\n", p2 / 100);
+#ifdef CSR_INFERENCE_ACCEL_BASE
+    printf("HW accelerated accumulated result: %d\n", p3);
+#endif
     
-    // Performance comparison
-    printf("\nPerformance analysis:\n");
-    printf("- Floating point operations: more precise but potentially slower\n");
-    printf("- Integer operations: faster but with reduced precision\n");
+    // Single prediction comparison
+    printf("\n=== Single Prediction Comparison ===\n");
+    double single_fp = predict(input);
+    int single_int = predict_int(input);
     
-    printf("Benchmark completed!\n");
+    printf("CPU FP single prediction: %.6f\n", single_fp);
+    printf("CPU INT single prediction: %d\n", single_int);
+    
+#ifdef CSR_INFERENCE_ACCEL_BASE
+    // Test single hardware prediction
+    int32_t hw_single = inference_accel_compute(input);
+    double hw_single_float = inference_accel_get_result_float();
+    
+    printf("HW single prediction (fixed): %ld\n", (long)hw_single);
+    printf("HW single prediction (float): %.6f\n", hw_single_float);
+    
+    // Accuracy comparison
+    double hw_error = hw_single_float - single_fp;
+    printf("HW vs CPU FP error: %.6f\n", hw_error);
+#endif
+    
+    printf("\n=== Performance Analysis ===\n");
+    printf("- CPU Floating point: highest precision, potentially slower\n");
+    printf("- CPU Integer: faster than FP, reduced precision\n");
+#ifdef CSR_INFERENCE_ACCEL_BASE
+    printf("- Hardware accelerator: dedicated pipeline, fixed-point arithmetic\n");
+    printf("- HW accelerator should show significant speedup for large batches\n");
+#endif
+    
+    printf("\nBenchmark completed!\n");
     return 0;
 }
