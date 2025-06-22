@@ -8,11 +8,11 @@ O timer utilizado é definido no arquivo `/home/luis/Estudos/Faculdade/mo801/pro
 
 TODO:
 
-[] Descrever processo de build.
-[] Escrever como o tempo vai ser medido.
-[] Escolher um modelo para acelerar.
-[] Medir o tempo sem aceleração.
-[] Explicar como o acelerador funciona.
-[] Explicar como buildar o SoC com o acelerador.
-[] Medir o tempo da aplicação com o acelerador.
-[] Comparar o resultado.
+- [] Descrever processo de build.
+- [] Escrever como o tempo vai ser medido.
+- [] Escolher um modelo para acelerar.
+- [] Medir o tempo sem aceleração.
+- [] Explicar como o acelerador funciona.
+- [] Explicar como buildar o SoC com o acelerador.
+- [] Medir o tempo da aplicação com o acelerador.
+- [] Comparar o resultado.
