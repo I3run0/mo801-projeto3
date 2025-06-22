@@ -109,7 +109,7 @@ class BaseSoC(SoCCore):
             self.hyperram = HyperRAM(hyperram_pads)
             self.bus.add_slave("main_ram", slave=self.hyperram.bus, region=SoCRegion(origin=self.mem_map["main_ram"], size=4 * MEGABYTE, mode="rwx"))
 
-        # Instantiate the adder peripheral
+        # Instantiate the accelerator peripheral
         self.inference_accel = InferenceAccelerator()
 
         # Video ------------------------------------------------------------------------------------
