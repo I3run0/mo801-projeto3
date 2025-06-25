@@ -23,6 +23,7 @@ from litex.soc.cores.video import *
 from litex.soc.cores.hyperbus import HyperRAM
 
 from inference_accelerator import InferenceAccelerator
+from inference_dumb import LogisticRegressionAccelerator
 # CRG ----------------------------------------------------------------------------------------------
 
 class _CRG(LiteXModule):
@@ -110,7 +111,7 @@ class BaseSoC(SoCCore):
             self.bus.add_slave("main_ram", slave=self.hyperram.bus, region=SoCRegion(origin=self.mem_map["main_ram"], size=4 * MEGABYTE, mode="rwx"))
 
         # Instantiate the accelerator peripheral
-        self.inference_accel = InferenceAccelerator()
+        self.inference_accel = LogisticRegressionAccelerator()
 
         # Video ------------------------------------------------------------------------------------
         if with_video_terminal:

@@ -1,7 +1,7 @@
 include $(BUILD_DIR)/software/include/generated/variables.mak
 include $(SOC_DIRECTORY)/software/common.mak
 
-OBJECTS   = diabetes_litex.o crt0.o
+OBJECTS   = inference_accel2.o crt0.o
 
 all: demo.bin
 
