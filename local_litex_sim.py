@@ -19,8 +19,7 @@ from litex.tools.litex_sim  import sim_args
 from litex.tools.litex_sim  import SimSoC
 from litex.tools.litex_sim import generate_gtkw_savefile
 
-from inference_accelerator import InferenceAccelerator
-from inference_dumb import LogisticRegressionAccelerator
+from inference_dumb2 import LogisticRegressionAccelerator
 
 class LocalSimSoc(SimSoC):
     def __init__(self,
