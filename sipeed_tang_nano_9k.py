@@ -22,9 +22,8 @@ from litex.soc.cores.video import *
 
 from litex.soc.cores.hyperbus import HyperRAM
 
-from dot_product_accel import DotProductAccelerator
-from inference_accelerator import InferenceAccelerator
-from inference_dumb import LogisticRegressionAccelerator
+from hardware_accelerator.dot_product_accel import DotProductAccelerator
+
 # CRG ----------------------------------------------------------------------------------------------
 
 class _CRG(LiteXModule):

@@ -1,7 +1,7 @@
 include $(BUILD_DIR)/software/include/generated/variables.mak
 include $(SOC_DIRECTORY)/software/common.mak
 
-OBJECTS   = dot_product_benchmark.o dot_product_accel_driver.o crt0.o
+OBJECTS   = dot_product_benchmark.o drivers/dot_product_accel_driver.o crt0.o
 
 all: demo.bin
 

@@ -5,9 +5,9 @@
 #include <generated/csr.h>
 #include <irq.h>
 #include <libbase/uart.h>
-#include <libbase/console.h>
+#include <libbase/console.h>s
 
-#include "dot_product_accel_driver.h"
+#include "drivers/dot_product_accel_driver.h"
 
 uint32_t start_ticks;
 uint32_t elapsed_ticks;
