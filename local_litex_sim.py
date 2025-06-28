@@ -19,7 +19,7 @@ from litex.tools.litex_sim  import sim_args
 from litex.tools.litex_sim  import SimSoC
 from litex.tools.litex_sim import generate_gtkw_savefile
 
-from dot_product_accel import DotProductAccelerator
+from hardware_accelerator.dot_product_accel import DotProductAccelerator
 
 class LocalSimSoc(SimSoC):
     def __init__(self,

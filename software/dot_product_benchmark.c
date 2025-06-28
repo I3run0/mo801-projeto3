@@ -5,7 +5,7 @@
 #include <generated/csr.h>
 #include <irq.h>
 #include <libbase/uart.h>
-#include <libbase/console.h>s
+#include <libbase/console.h>
 
 #include "drivers/dot_product_accel_driver.h"
 
@@ -19,7 +19,7 @@ int predict(double *x);
 int predict_hw(double *x);
 int benchmark(void);
 double dot(size_t size, double*x, double*w);
-double dot_hw(size_t size, double*x, double *weights);
+double dot_hw(size_t size, double*x, double *w);
 
 void start_stopwatch(void) {
     // Disable timer
@@ -106,6 +106,16 @@ int predict(double *x) {
     return classIdx;
 }
 
+double dot(size_t size, double *x, double *w) {
+    double dot = 0.0;
+
+    for (uint16_t i = 0; i < size; i++) {
+        dot += x[i] * w[i];
+    }
+
+    return dot;
+}
+
 int predict_hw(double *x) {
     double votes[10] = { 0.00502334499 ,-0.12206523117 ,0.003579543967 ,0.020737360972 ,0.078377187135 ,-0.032150862747 ,-0.005069195112 ,0.014919916777 ,0.090375756313 ,-0.053727821125  };
 
@@ -133,22 +143,9 @@ int predict_hw(double *x) {
     return classIdx;
 }
 
-double dot(size_t size, double*x, double *weights) { 
+double dot_hw(size_t size, double*x, double *weights) { 
     return logistic_accel_dot_product(size, x, weights);
 }
-
-
-double dot_hw(size_t size, double *x, double *w) {
-    double dot = 0.0;
-
-    for (uint16_t i = 0; i < size; i++) {
-        dot += x[i] * w[i];
-    }
-
-    return dot;
-}
-
-
 
 int benchmark(void) {
     puts("LiteX Benchmark with Hardware Accelerator Starting...\n");
@@ -168,32 +165,36 @@ int benchmark(void) {
     volatile int p2 = 0;
     int i;
     
-    
     // First benchmark - floating point prediction (CPU)
     printf("Running CPU only benchmark...\n");
     start_stopwatch();
     
-    for (i = 0; i < 1000; i += 1) {
+
+    for (i = 0; i < 100; i += 1) {
         p1 += predict(input2);
     }
     
     stop_stopwatch();
-    print_elapsed_time(elapsed_ticks, "CPU Floating Point Benchmark");
-    
+    print_elapsed_time(elapsed_ticks, "CPU only Benchmark");
+
+#if LOGISTIC_ACCEL_AVAILABLE 
     // Second benchmark - integer prediction (CPU)
     printf("Running Hardware acceleration benchmark...\n");
     start_stopwatch();
     
-    for (i = 0; i < 1000; i += 1) {
+    for (i = 0; i < 100; i += 1) {
         p2 += predict_hw(input2);
     }
     
     stop_stopwatch();
-    print_elapsed_time(elapsed_ticks, "CPU Integer Benchmark");
-    
+    print_elapsed_time(elapsed_ticks, "CPU Hardware acceleration Benchmark");
+#endif    
     printf("=== Final Results ===\n");
     printf("CPU accumulated result: %d\n", p1);
+
+#if LOGISTIC_ACCEL_AVAILABLE 
     printf("Hardware acceleration accumulated result: %d\n", p2);
+#endif    
 
     printf("\nBenchmark completed!\n");
     return 0;

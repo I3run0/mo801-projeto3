@@ -18,7 +18,7 @@ class DotProductAccelerator(LiteXModule):
             CSRField(f"weight_{i}", size=data_width) for i in range(input_size)
         ])
         self.result = CSRStatus(data_width, name="result")
-
+        
         # Access fields as arrays
         input_array = Array(self.input.fields.fields)
         weight_array = Array(self.weight.fields.fields)
