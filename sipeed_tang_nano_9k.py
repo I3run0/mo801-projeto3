@@ -24,6 +24,7 @@ from litex.soc.cores.hyperbus import HyperRAM
 
 from hardware_accelerator.dot_product_accel import DotProductAccelerator
 
+
 # CRG ----------------------------------------------------------------------------------------------
 
 class _CRG(LiteXModule):
@@ -111,7 +112,7 @@ class BaseSoC(SoCCore):
             self.bus.add_slave("main_ram", slave=self.hyperram.bus, region=SoCRegion(origin=self.mem_map["main_ram"], size=4 * MEGABYTE, mode="rwx"))
 
         # Instantiate the accelerator peripheral
-        self.inference_accel = DotProductAccelerator()
+        self.logistic = DotProductAccelerator()
 
         # Video ------------------------------------------------------------------------------------
         if with_video_terminal:

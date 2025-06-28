@@ -18,14 +18,14 @@ class DotProductAccelerator(LiteXModule):
             CSRField(f"weight_{i}", size=data_width) for i in range(input_size)
         ])
         self.result = CSRStatus(data_width, name="result")
-
+        
         # Access fields as arrays
         input_array = Array(self.input.fields.fields)
         weight_array = Array(self.weight.fields.fields)
 
         # Element-wise multiply inputs and weights
         products = [
-            Signal(data_width, name=f"product_{i}")
+            Signal(2*data_width, name=f"product_{i}")
             for i in range(input_size)
         ]
         for i in range(input_size):
@@ -35,7 +35,7 @@ class DotProductAccelerator(LiteXModule):
         def pairwise_sum_level(signals, level):
             next_level = []
             for i in range(0, len(signals), 2):
-                s = Signal(data_width, name=f"sum_l{level}_{i//2}")
+                s = Signal(data_width*2, name=f"sum_l{level}_{i//2}")
                 self.comb += s.eq(signals[i] + signals[i+1])
                 next_level.append(s)
             return next_level
@@ -48,4 +48,4 @@ class DotProductAccelerator(LiteXModule):
 
         # Assign the final sum to the output register
         # self.sync += self.result.status.eq(sum_level[0]) TODO: Maybe this is better
-        self.comb += self.result.status.eq(sum_level[0])
+        self.comb += self.result.status.eq(sum_level[0][:32])

@@ -6,6 +6,15 @@
 #define FIXED_POINT_FRACTIONAL_BITS 16
 #define FIXED_POINT_SCALE (1 << FIXED_POINT_FRACTIONAL_BITS)
 
+int32_t double_to_fixed(double value, int fractional_bits);
+double fixed_to_double(int32_t value, int fractional_bits);
+void logistic_accel_init(void);
+void logistic_accel_set_inputs(double *inputs, int count);
+void logistic_accel_set_weights(double *weights, int count);
+int32_t logistic_accel_get_result(void);
+int32_t logistic_accel_compute_chunk(double *inputs, double *weights, int chunk_size);
+double logistic_accel_dot_product(size_t size, double *inputs, double *weights);
+
 // CSR access functions for logistic accelerator inputs and weights
 #if LOGISTIC_ACCEL_AVAILABLE
 
@@ -124,9 +133,9 @@ int32_t logistic_accel_compute_chunk(double *inputs, double *weights, int chunk_
 double logistic_accel_dot_product(size_t size, double *inputs, double *weights) {
     int64_t total_result = 0;
     int logistic_accel_chuncks = size / LOGISTIC_ACCEL_INPUT_SIZE;
-    // Process in chunks of 8
+    // Process in chunks
     for (int chunk = 0; chunk < logistic_accel_chuncks; chunk++) {
-        int offset = chunk * logistic_accel_chuncks;
+        int offset = chunk * LOGISTIC_ACCEL_INPUT_SIZE;
         int32_t chunk_result = logistic_accel_compute_chunk(
             &inputs[offset], 
             &weights[offset], 

@@ -1,5 +1,3 @@
-# train_export_digits_micromlgen.py
-
 import numpy as np
 from sklearn.datasets import load_digits
 from sklearn.linear_model import LogisticRegression

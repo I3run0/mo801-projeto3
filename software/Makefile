@@ -51,7 +51,7 @@ VPATH = $(BIOS_DIRECTORY):$(BIOS_DIRECTORY)/cmds:$(CPU_DIRECTORY)
 	$(assemble)
 
 clean:
-	$(RM) $(OBJECTS) demo.elf demo.bin .*~ *~
+	$(RM) $(OBJECTS) demo.elf demo.elf.map *.d demo.bin .*~ *~
 
 .PHONY: all clean
 
