@@ -1,7 +1,8 @@
 include $(BUILD_DIR)/software/include/generated/variables.mak
 include $(SOC_DIRECTORY)/software/common.mak
 
-OBJECTS   = dot_product_benchmark.o drivers/dot_product_accel_driver.o crt0.o
+OBJECTS   = crt0.o
+OBJECTS   += $(patsubst %.c,%.o,$(wildcard *.c */*.c */*/*.c))
 
 all: demo.bin
 
@@ -51,7 +52,7 @@ VPATH = $(BIOS_DIRECTORY):$(BIOS_DIRECTORY)/cmds:$(CPU_DIRECTORY)
 	$(assemble)
 
 clean:
-	$(RM) $(OBJECTS) demo.elf demo.elf.map *.d demo.bin .*~ *~
+	$(RM) $(OBJECTS) $(OBJECTS:.o=.d) demo.elf demo.elf.map demo.bin .*~ *~ *.d
 
 .PHONY: all clean
 

@@ -1,4 +1,4 @@
-#include "dot_product_accel_driver.h"
+#include "dot_product_accel.h"
 #include <stddef.h>
 #include <generated/csr.h>
 
