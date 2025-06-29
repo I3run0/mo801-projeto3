@@ -8,6 +8,7 @@
 
 int32_t double_to_fixed(double value, int fractional_bits);
 double fixed_to_double(int32_t value, int fractional_bits);
+double fixed64_to_double(int64_t value, int fractional_bits);
 void logistic_accel_init(void);
 void logistic_accel_set_inputs(double *inputs, int count);
 void logistic_accel_set_weights(double *weights, int count);
@@ -57,6 +58,10 @@ int32_t double_to_fixed(double value, int fractional_bits) {
  * Convert fixed-point to double representation
  */
 double fixed_to_double(int32_t value, int fractional_bits) {
+    return (double)value / (1 << fractional_bits);
+}
+
+double fixed64_to_double(int64_t value, int fractional_bits) {
     return (double)value / (1 << fractional_bits);
 }
 
@@ -145,5 +150,5 @@ double logistic_accel_dot_product(size_t size, double *inputs, double *weights) 
     }
     
     // Convert back to double
-    return fixed_to_double((int32_t)total_result, FIXED_POINT_FRACTIONAL_BITS);
+    return fixed64_to_double(total_result, FIXED_POINT_FRACTIONAL_BITS);
 }
