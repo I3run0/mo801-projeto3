@@ -9,12 +9,8 @@
 
 #include "drivers/dot_product_accel.h"
 #include "drivers/uart.h"
+#include "drivers/timer.h"
 
-uint32_t start_ticks;
-uint32_t elapsed_ticks;
-
-void start_stopwatch(void);
-void stop_stopwatch(void);
 void print_elapsed_time(uint32_t ticks, const char* benchmark_name);
 int predict(double *x);
 int predict_hw(double *x);
@@ -22,32 +18,6 @@ int benchmark(void);
 double dot(size_t size, double*x, double*w);
 double dot_hw(size_t size, double*x, double *w);
 
-void start_stopwatch(void) {
-    // Disable timer
-    timer0_en_write(0);
-    
-    // Set timer to count down from maximum value
-    timer0_reload_write(0xffffffff);
-    timer0_load_write(0xffffffff);
-    
-    // Enable timer
-    timer0_en_write(1);
-    
-    // Update and read initial value
-    timer0_update_value_write(1);
-    start_ticks = timer0_value_read();
-}
-
-void stop_stopwatch(void) {
-    uint32_t end_ticks;
-    
-    // Update and read final value
-    timer0_update_value_write(1);
-    end_ticks = timer0_value_read();
-    
-    // Calculate elapsed ticks (timer counts down)
-    elapsed_ticks = start_ticks - end_ticks;
-}
 
 // Print elapsed time without using floats
 void print_elapsed_time(uint32_t ticks, const char* benchmark_name) {
@@ -176,7 +146,7 @@ int benchmark(void) {
     }
     
     stop_stopwatch();
-    print_elapsed_time(elapsed_ticks, "CPU only Benchmark");
+    print_elapsed_time(get_elapsed_ticks(), "CPU only Benchmark");
 
 #if LOGISTIC_ACCEL_AVAILABLE 
     // Second benchmark - integer prediction (CPU)
@@ -188,7 +158,7 @@ int benchmark(void) {
     }
     
     stop_stopwatch();
-    print_elapsed_time(elapsed_ticks, "CPU Hardware acceleration Benchmark");
+    print_elapsed_time(get_elapsed_ticks(), "CPU Hardware acceleration Benchmark");
 #endif    
     printf("=== Final Results ===\n");
     printf("CPU accumulated result: %d\n", p1);
