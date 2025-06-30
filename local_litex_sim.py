@@ -76,7 +76,8 @@ class LocalSimSoc(SimSoC):
             **kwargs
         )
         
-        self.logistic = DotProductAccelerator()
+        # Add the dot product accelerator to the SoC
+        self.add_module("dot_product_accel", DotProductAccelerator())
 
 
 def main():

@@ -112,7 +112,7 @@ class BaseSoC(SoCCore):
             self.bus.add_slave("main_ram", slave=self.hyperram.bus, region=SoCRegion(origin=self.mem_map["main_ram"], size=4 * MEGABYTE, mode="rwx"))
 
         # Instantiate the accelerator peripheral
-        self.logistic = DotProductAccelerator()
+        self.add_module("dot_product_accel", DotProductAccelerator())
 
         # Video ------------------------------------------------------------------------------------
         if with_video_terminal:

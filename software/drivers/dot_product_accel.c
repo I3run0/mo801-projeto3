@@ -4,46 +4,45 @@
 
 // Fixed-point arithmetic configuration (Q16.16 format)
 #define FIXED_POINT_FRACTIONAL_BITS 16
-#define FIXED_POINT_SCALE (1 << FIXED_POINT_FRACTIONAL_BITS)
 
 int32_t double_to_fixed(double value, int fractional_bits);
 double fixed_to_double(int32_t value, int fractional_bits);
 double fixed64_to_double(int64_t value, int fractional_bits);
-void logistic_accel_init(void);
-void logistic_accel_set_inputs(double *inputs, int count);
-void logistic_accel_set_weights(double *weights, int count);
-int32_t logistic_accel_get_result(void);
-int32_t logistic_accel_compute_chunk(double *inputs, double *weights, int chunk_size);
-double logistic_accel_dot_product(size_t size, double *inputs, double *weights);
+void dot_product_accel_init(void);
+void dot_product_accel_set_inputs(double *inputs, int count);
+void dot_product_accel_set_weights(double *weights, int count);
+int32_t dot_product_accel_get_result(void);
+int32_t dot_product_accel_compute_chunk(double *inputs, double *weights, int chunk_size);
+double dot_product_accel_dot_product(size_t size, double *inputs, double *weights);
 
-// CSR access functions for logistic accelerator inputs and weights
-#if LOGISTIC_ACCEL_AVAILABLE
+// CSR access functions for dot product accelerator inputs and weights
+#if DOT_PRODUCT_ACCEL_AVAILABLE
 
 // Input CSR write functions
-static inline void logistic_input_write(uint32_t *values) {
-    for (int i = 0; i < LOGISTIC_ACCEL_INPUT_SIZE; i++) {
-        csr_write_simple(values[i], CSR_LOGISTIC_INPUT_ADDR + (i * 4));
+static inline void dot_product_input_write(uint32_t *values) {
+    for (int i = 0; i < DOT_PRODUCT_ACCEL_INPUT_SIZE; i++) {
+        csr_write_simple(values[i], CSR_DOT_PRODUCT_ACCEL_INPUT_ADDR + (i * 4));
     }
 }
 
 // Weight CSR write functions  
-static inline void logistic_weight_write(uint32_t *values) {
-    for (int i = 0; i < LOGISTIC_ACCEL_INPUT_SIZE; i++) {
-        csr_write_simple(values[i], CSR_LOGISTIC_WEIGHT_ADDR + (i * 4));
+static inline void dot_product_weight_write(uint32_t *values) {
+    for (int i = 0; i < DOT_PRODUCT_ACCEL_INPUT_SIZE; i++) {
+        csr_write_simple(values[i], CSR_DOT_PRODUCT_ACCEL_WEIGHT_ADDR + (i * 4));
     }
 }
 
 #endif
 
 /**
- * Initialize the logistic regression accelerator
+ * Initialize the dot product accelerator
  */
-void logistic_accel_init(void) {
-#if LOGISTIC_ACCEL_AVAILABLE
+void dot_product_accel_init(void) {
+#if DOT_PRODUCT_ACCEL_AVAILABLE
     // Clear all input and weight registers
-    uint32_t zeros[LOGISTIC_ACCEL_INPUT_SIZE] = {0};
-    logistic_input_write(zeros);
-    logistic_weight_write(zeros);
+    uint32_t zeros[DOT_PRODUCT_ACCEL_INPUT_SIZE] = {0};
+    dot_product_input_write(zeros);
+    dot_product_weight_write(zeros);
 #endif
 }
 
@@ -68,59 +67,59 @@ double fixed64_to_double(int64_t value, int fractional_bits) {
 /**
  * Set input values in the accelerator
  */
-void logistic_accel_set_inputs(double *inputs, int count) {
-#if LOGISTIC_ACCEL_AVAILABLE
-    uint32_t fixed_inputs[LOGISTIC_ACCEL_INPUT_SIZE] = {0};
+void dot_product_accel_set_inputs(double *inputs, int count) {
+#if DOT_PRODUCT_ACCEL_AVAILABLE
+    uint32_t fixed_inputs[DOT_PRODUCT_ACCEL_INPUT_SIZE] = {0};
     
-    int actual_count = (count > LOGISTIC_ACCEL_INPUT_SIZE) ? LOGISTIC_ACCEL_INPUT_SIZE : count;
+    int actual_count = (count > DOT_PRODUCT_ACCEL_INPUT_SIZE) ? DOT_PRODUCT_ACCEL_INPUT_SIZE : count;
     
     for (int i = 0; i < actual_count; i++) {
         fixed_inputs[i] = (uint32_t)double_to_fixed(inputs[i], FIXED_POINT_FRACTIONAL_BITS);
     }
     
-    logistic_input_write(fixed_inputs);
+    dot_product_input_write(fixed_inputs);
 #endif
 }
 
 /**
  * Set weight values in the accelerator
  */
-void logistic_accel_set_weights(double *weights, int count) {
-#if LOGISTIC_ACCEL_AVAILABLE
-    uint32_t fixed_weights[LOGISTIC_ACCEL_INPUT_SIZE] = {0};
+void dot_product_accel_set_weights(double *weights, int count) {
+#if DOT_PRODUCT_ACCEL_AVAILABLE
+    uint32_t fixed_weights[DOT_PRODUCT_ACCEL_INPUT_SIZE] = {0};
     
-    int actual_count = (count > LOGISTIC_ACCEL_INPUT_SIZE) ? LOGISTIC_ACCEL_INPUT_SIZE : count;
+    int actual_count = (count > DOT_PRODUCT_ACCEL_INPUT_SIZE) ? DOT_PRODUCT_ACCEL_INPUT_SIZE : count;
     
     for (int i = 0; i < actual_count; i++) {
         fixed_weights[i] = (uint32_t)double_to_fixed(weights[i], FIXED_POINT_FRACTIONAL_BITS);
     }
     
-    logistic_weight_write(fixed_weights);
+    dot_product_weight_write(fixed_weights);
 #endif
 }
 
 /**
  * Get the result from the accelerator
  */
-int32_t logistic_accel_get_result(void) {
-#if LOGISTIC_ACCEL_AVAILABLE
-    return (int32_t)logistic_result_read();
+int32_t dot_product_accel_get_result(void) {
+#if DOT_PRODUCT_ACCEL_AVAILABLE
+    return (int32_t)dot_product_accel_result_read();
 #else
     return 0;
 #endif
 }
 
 /**
- * Compute dot product for a chunk of up to 8 elements
+ * Compute dot product for a chunk of up to DOT_PRODUCT_ACCEL_INPUT_SIZE elements
  */
-int32_t logistic_accel_compute_chunk(double *inputs, double *weights, int chunk_size) {
-#if LOGISTIC_ACCEL_AVAILABLE
+int32_t dot_product_accel_compute_chunk(double *inputs, double *weights, int chunk_size) {
+#if DOT_PRODUCT_ACCEL_AVAILABLE
     // Set inputs and weights
-    logistic_accel_set_inputs(inputs, chunk_size);
-    logistic_accel_set_weights(weights, chunk_size);
+    dot_product_accel_set_inputs(inputs, chunk_size);
+    dot_product_accel_set_weights(weights, chunk_size);
     
     // The result is available immediately due to combinatorial logic
-    return logistic_accel_get_result();
+    return dot_product_accel_get_result();
 #else
     // Fallback software implementation
     int32_t result = 0;
@@ -132,23 +131,40 @@ int32_t logistic_accel_compute_chunk(double *inputs, double *weights, int chunk_
 }
 
 /**
- * Compute dot product for 64-element vectors using the hardware accelerator
- * Processes the vectors in chunks of 8 elements
+ * Compute dot product for vectors using the hardware accelerator
+ * Processes the vectors in chunks of DOT_PRODUCT_ACCEL_INPUT_SIZE elements
+ * and handles any remaining elements
  */
-double logistic_accel_dot_product(size_t size, double *inputs, double *weights) {
+double dot_product_accel_dot_product(size_t size, double *inputs, double *weights) {
     int64_t total_result = 0;
-    int logistic_accel_chuncks = size / LOGISTIC_ACCEL_INPUT_SIZE;
-    // Process in chunks
-    for (int chunk = 0; chunk < logistic_accel_chuncks; chunk++) {
-        int offset = chunk * LOGISTIC_ACCEL_INPUT_SIZE;
-        int32_t chunk_result = logistic_accel_compute_chunk(
-            &inputs[offset], 
-            &weights[offset], 
-            LOGISTIC_ACCEL_INPUT_SIZE
+    size_t processed = 0;
+    
+    // Process full chunks
+    while (processed + DOT_PRODUCT_ACCEL_INPUT_SIZE <= size) {
+        int32_t chunk_result = dot_product_accel_compute_chunk(
+            &inputs[processed], 
+            &weights[processed], 
+            DOT_PRODUCT_ACCEL_INPUT_SIZE
         );
         total_result += chunk_result;
+        processed += DOT_PRODUCT_ACCEL_INPUT_SIZE;
+    }
+    
+    // Handle remaining elements that don't fit in a complete chunk
+    if (processed < size) {
+        int32_t remainder_result = dot_product_accel_compute_chunk(
+            &inputs[processed], 
+            &weights[processed], 
+            size - processed
+        );
+        total_result += remainder_result;
     }
     
     // Convert back to double
     return fixed64_to_double(total_result, FIXED_POINT_FRACTIONAL_BITS);
+}
+
+// Legacy function name for backward compatibility
+double logistic_accel_dot_product(size_t size, double *inputs, double *weights) {
+    return dot_product_accel_dot_product(size, inputs, weights);
 }
